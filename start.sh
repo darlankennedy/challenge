@@ -2,7 +2,7 @@ composer install
 
 php artisan migrate --seed
 
-php artisan key:generate
+php artisan key:generate --force
 
 php artisan cache:clear
 php artisan config:clear

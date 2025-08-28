@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\interface\BaseRepositoryInterface;
+use App\Interface\BaseRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Exception;

@@ -6,7 +6,7 @@ services:
     build:
       dockerfile: ./devops/php/Dockerfile
     volumes:
-      - ./:/backend:rw
+      - ./:/backend:rw,z
       - ./devops/php/php.ini:/usr/local/etc/php/php.ini:ro
     restart: always
     command: ["/backend/start.sh"]

@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use App\GraphQL\Mutations\AuthMutator;
-use App\Service\AuthService;
+use App\Services\AuthService;
 use DomainException;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestCase;

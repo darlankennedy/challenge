@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\repository\BaseRepository;
+use App\Repositories\BaseRepository;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
@@ -63,7 +63,7 @@ class BaseRepositoryTest extends TestCase
         parent::tearDown();
     }
 
-    public function all_returns_collection_of_models()
+    public function test_all_returns_collection_of_models()
     {
         FakeModel::query()->create(['name' => 'A']);
         FakeModel::query()->create(['name' => 'B']);
@@ -76,7 +76,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertEquals(['A', 'B'], $result->pluck('name')->all());
     }
 
-    public function all_on_exception_returns_empty_collection_and_logs_error()
+    public function test_all_on_exception_returns_empty_collection_and_logs_error()
     {
         Log::spy();
 
@@ -88,7 +88,7 @@ class BaseRepositoryTest extends TestCase
         Log::shouldHaveReceived('error')->once();
     }
 
-    public function create_inserts_and_returns_model()
+    public function test_create_inserts_and_returns_model()
     {
         $repo = new BaseRepository(new FakeModel());
 
@@ -98,7 +98,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertDatabaseHas('fakes', ['name' => 'New']);
     }
 
-    public function create_on_exception_returns_null_and_logs_error()
+    public function test_create_on_exception_returns_null_and_logs_error()
     {
         Log::spy();
 
@@ -115,7 +115,7 @@ class BaseRepositoryTest extends TestCase
         Log::shouldHaveReceived('error')->once();
     }
 
-    public function show_returns_model_when_found()
+    public function test_show_returns_model_when_found()
     {
         $m = FakeModel::query()->create(['name' => 'ShowMe']);
 
@@ -127,7 +127,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertEquals('ShowMe', $found->name);
     }
 
-    public function show_returns_null_when_exception_and_logs_error()
+    public function test_show_returns_null_when_exception_and_logs_error()
     {
         Log::spy();
 
@@ -139,7 +139,7 @@ class BaseRepositoryTest extends TestCase
         Log::shouldHaveReceived('error')->once();
     }
 
-    public function update_changes_fields_and_returns_model()
+    public function test_update_changes_fields_and_returns_model()
     {
         $m = FakeModel::query()->create(['name' => 'Old']);
         $repo = new BaseRepository(new FakeModel());
@@ -151,7 +151,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertDatabaseHas('fakes', ['id' => $m->id, 'name' => 'New']);
     }
 
-    public function update_returns_null_and_logs_warning_when_not_found()
+    public function test_update_returns_null_and_logs_warning_when_not_found()
     {
         Log::spy();
 
@@ -162,7 +162,7 @@ class BaseRepositoryTest extends TestCase
         Log::shouldHaveReceived('warning')->once()->with('not found', ['id' => 9999]);
     }
 
-    public function update_returns_null_and_logs_error_on_exception()
+    public function test_update_returns_null_and_logs_error_on_exception()
     {
         Log::spy();
 
@@ -174,7 +174,7 @@ class BaseRepositoryTest extends TestCase
         Log::shouldHaveReceived('error')->once();
     }
 
-    public function delete_removes_record_and_returns_true()
+    public function test_delete_removes_record_and_returns_true()
     {
         $m = FakeModel::query()->create(['name' => 'Del']);
         $repo = new BaseRepository(new FakeModel());
@@ -185,7 +185,7 @@ class BaseRepositoryTest extends TestCase
         $this->assertDatabaseMissing('fakes', ['id' => $m->id]);
     }
 
-    public function delete_returns_false_and_logs_warning_when_not_found()
+    public function test_delete_returns_false_and_logs_warning_when_not_found()
     {
         Log::spy();
 
@@ -197,7 +197,7 @@ class BaseRepositoryTest extends TestCase
         Log::shouldHaveReceived('warning')->once()->with('not found', ['id' => 777]);
     }
 
-    public function delete_returns_false_and_logs_error_on_exception()
+    public function test_delete_returns_false_and_logs_error_on_exception()
     {
         Log::spy();
 

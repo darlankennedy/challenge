@@ -2,101 +2,222 @@
 
 namespace Tests\Unit;
 
-use App\Service\UserService;
-use App\repository\UserRepository;
+use App\Models\User;
+use App\Repositories\UserRepository;
+use App\Services\UserService;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Collection;
 use PHPUnit\Framework\MockObject\MockObject;
 use Tests\TestCase;
 
-class UserServiceTest extends TestCase
+final class UserServiceTest extends TestCase
 {
-    private UserRepository $repo;
-
-    private UserService $service;
-
-    protected function setUp(): void
+    /** Helper: cria um User sem persistir */
+    private function fakeUser(int $id, string $name, string $email): User
     {
-        parent::setUp();
-        $this->repo = $this->createMock(UserRepository::class);
-        $this->service = new UserService($this->repo);
+        return (new User())->forceFill([
+            'id'    => $id,
+            'name'  => $name,
+            'email' => $email,
+        ]);
     }
 
-    public function test_get_all_users_returns_array(): void
+    /** ---------------- getAllUsers ---------------- */
+
+    public function test_get_all_users_returns_collection(): void
     {
-        $expected = [
-            ['id' => 1, 'name' => 'Ana'],
-            ['id' => 2, 'name' => 'Bruno'],
-        ];
+        /** @var UserRepository&MockObject $repo */
+        $repo = $this->createMock(UserRepository::class);
 
-        $this->repo->expects($this->once())
-            ->method('all')
-            ->with()
-            ->willReturn($expected);
+        $users = collect([
+            $this->fakeUser(1, 'Ana', 'ana@example.com'),
+            $this->fakeUser(2, 'Bob', 'bob@example.com'),
+        ]);
 
-        $result = $this->service->getAllUsers();
+        $repo->method('all')->willReturn($users);
 
-        $this->assertSame($expected, $result);
+        $svc = new UserService($repo);
+        $out = $svc->getAllUsers();
+
+        $this->assertInstanceOf(Collection::class, $out);
+        $this->assertCount(2, $out);
+        $this->assertSame('Ana', $out[0]->name);
     }
 
-    public function test_create_user_passes_data_and_returns_created(): void
+    public function test_get_all_users_throws_on_error(): void
     {
-        $input = ['name' => 'Carla', 'email' => 'carla@example.com'];
-        $created = ['id' => 10, 'name' => 'Carla', 'email' => 'carla@example.com'];
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('all')->willThrowException(new \RuntimeException('db down'));
 
-        $this->repo->expects($this->once())
-            ->method('create')
-            ->with($this->equalTo($input))
-            ->willReturn($created);
+        $svc = new UserService($repo);
 
-        $result = $this->service->createUser($input);
-
-        $this->assertSame($created, $result);
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Não foi possível listar usuários.');
+        $svc->getAllUsers();
     }
 
-    public function test_update_user_passes_id_and_data_and_returns_updated(): void
-    {
-        $id = 5;
-        $data = ['name' => 'Daniel'];
-        $updated = ['id' => 5, 'name' => 'Daniel'];
+    /** ---------------- createUser ---------------- */
 
-        $this->repo->expects($this->once())
+    public function test_create_user_passes_data_and_returns_model(): void
+    {
+        $data = ['name' => 'Carol', 'email' => 'carol@example.com'];
+        $created = $this->fakeUser(10, 'Carol', 'carol@example.com');
+
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('create')->with($data)->willReturn($created);
+
+        $svc = new UserService($repo);
+        $out = $svc->createUser($data);
+
+        $this->assertNotNull($out);
+        $this->assertSame('Carol', $out->name);
+    }
+
+    public function test_create_user_throws_on_error(): void
+    {
+        $data = ['name' => 'Carol', 'email' => 'carol@example.com'];
+
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('create')->with($data)->willThrowException(new \RuntimeException('db down'));
+
+        $svc = new UserService($repo);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Não foi possível criar o usuário.');
+        $svc->createUser($data);
+    }
+
+    /** ---------------- updateUser ---------------- */
+
+    public function test_update_user_passes_id_and_data_and_returns_model(): void
+    {
+        $updated = $this->fakeUser(7, 'New Name', 'new@example.com');
+
+        $repo = $this->createMock(UserRepository::class);
+        $repo->expects($this->once())
             ->method('update')
-            ->with(
-                $this->equalTo($id),
-                $this->equalTo($data)
-            )
+            ->with(7, ['name' => 'New Name'])
             ->willReturn($updated);
 
-        $result = $this->service->updateUser($id, $data);
+        $svc = new UserService($repo);
+        $out = $svc->updateUser(7, ['name' => 'New Name']);
 
-        $this->assertSame($updated, $result);
+        $this->assertNotNull($out);
+        $this->assertSame('New Name', $out->name);
     }
 
-    public function test_delete_user_passes_id_and_returns_boolean(): void
+    public function test_update_user_throws_when_not_found(): void
     {
-        $id = 7;
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('update')
+            ->with(999, ['name' => 'X'])
+            ->willThrowException(new ModelNotFoundException());
 
-        $this->repo->expects($this->once())
-            ->method('delete')
-            ->with($this->equalTo($id))
-            ->willReturn(true);
+        $svc = new UserService($repo);
 
-        $result = $this->service->deleteUser($id);
-
-        $this->assertTrue($result);
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Usuário não encontrado para atualização.');
+        $svc->updateUser(999, ['name' => 'X']);
     }
 
-    public function test_get_user_by_id_returns_entity(): void
+    public function test_update_user_throws_on_error(): void
     {
-        $id = 3;
-        $user = ['id' => 3, 'name' => 'Eva'];
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('update')
+            ->with(5, ['name' => 'Z'])
+            ->willThrowException(new \RuntimeException('db down'));
 
-        $this->repo->expects($this->once())
-            ->method('show')
-            ->with($this->equalTo($id))
-            ->willReturn($user);
+        $svc = new UserService($repo);
 
-        $result = $this->service->getUserById($id);
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Não foi possível atualizar o usuário.');
+        $svc->updateUser(5, ['name' => 'Z']);
+    }
 
-        $this->assertSame($user, $result);
+    /** ---------------- deleteUser ---------------- */
+
+    public function test_delete_user_returns_true_on_success(): void
+    {
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('delete')->with(1)->willReturn(true);
+
+        $svc = new UserService($repo);
+        $this->assertTrue($svc->deleteUser(1));
+    }
+
+    public function test_delete_user_throws_when_not_found(): void
+    {
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('delete')->with(999)->willThrowException(new ModelNotFoundException());
+
+        $svc = new UserService($repo);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Usuário não encontrado para exclusão.');
+        $svc->deleteUser(999);
+    }
+
+    public function test_delete_user_throws_on_error(): void
+    {
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('delete')->with(2)->willThrowException(new \RuntimeException('db down'));
+
+        $svc = new UserService($repo);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Não foi possível deletar o usuário.');
+        $svc->deleteUser(2);
+    }
+
+    /** ---------------- getUserById ---------------- */
+
+    public function test_get_user_by_id_returns_model(): void
+    {
+        $user = $this->fakeUser(7, 'Ana', 'ana@example.com');
+
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('show')->with(7)->willReturn($user);
+
+        $svc = new UserService($repo);
+        $out = $svc->getUserById(7);
+
+        $this->assertNotNull($out);
+        $this->assertSame(7, $out->id);
+        $this->assertSame('Ana', $out->name);
+    }
+
+    public function test_get_user_by_id_returns_null_when_repo_returns_null(): void
+    {
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('show')->with(123)->willReturn(null);
+
+        $svc = new UserService($repo);
+        $out = $svc->getUserById(123);
+
+        $this->assertNull($out);
+    }
+
+    public function test_get_user_by_id_throws_when_not_found(): void
+    {
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('show')->with(999)->willThrowException(new ModelNotFoundException());
+
+        $svc = new UserService($repo);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Usuário não encontrado.');
+        $svc->getUserById(999);
+    }
+
+    public function test_get_user_by_id_throws_on_error(): void
+    {
+        $repo = $this->createMock(UserRepository::class);
+        $repo->method('show')->with(5)->willThrowException(new \RuntimeException('db down'));
+
+        $svc = new UserService($repo);
+
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Não foi possível buscar o usuário.');
+        $svc->getUserById(5);
     }
 }

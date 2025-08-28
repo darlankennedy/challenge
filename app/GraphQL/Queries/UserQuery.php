@@ -3,8 +3,8 @@
 namespace App\GraphQL\Queries;
 
 use App\Models\User;
-use App\Service\AuthService;
-use App\Service\UserService;
+use App\Services\AuthService;
+use App\Services\UserService;
 use Ramsey\Collection\Collection;
 
 class UserQuery

@@ -2,7 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
-use App\Service\UserService;
+use App\Services\UserService;
 
 class UserMutator
 {

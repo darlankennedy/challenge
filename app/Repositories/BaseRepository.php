@@ -1,11 +1,12 @@
 <?php
 
-namespace App\repository;
+namespace App\Repositories;
 
 use App\interface\BaseRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Collection;
 
 class BaseRepository implements BaseRepositoryInterface
 {
@@ -16,7 +17,7 @@ class BaseRepository implements BaseRepositoryInterface
         $this->model = $model;
     }
 
-    public function all()
+    public function all(): Collection
     {
         try {
             return $this->model->all();
@@ -29,7 +30,7 @@ class BaseRepository implements BaseRepositoryInterface
         }
     }
 
-    public function create(array $data)
+    public function create(array $data): ?Model
     {
         try {
             return $this->model->create($data);
@@ -42,7 +43,7 @@ class BaseRepository implements BaseRepositoryInterface
         }
     }
 
-    public function update($id, array $data)
+    public function update($id, array $data): ?Model
     {
         try {
             $record = $this->show($id);
@@ -62,7 +63,7 @@ class BaseRepository implements BaseRepositoryInterface
         }
     }
 
-    public function delete($id)
+    public function delete($id): bool
     {
         try {
             $record = $this->show($id);
@@ -81,7 +82,7 @@ class BaseRepository implements BaseRepositoryInterface
         }
     }
 
-    public function show($id)
+    public function show($id): ?Model
     {
         try {
             return $this->model->find($id);

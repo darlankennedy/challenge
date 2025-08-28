@@ -1,0 +1,10 @@
+extend type Mutation {
+    createUser(name: String!, email: String!, password: String!): User
+    @guard @field(resolver: "App\\GraphQL\\Mutations\\UserMutator@create")
+
+    updateUser(id: ID!, name: String, email: String, password: String): User
+    @guard @field(resolver: "App\\GraphQL\\Mutations\\UserMutator@update")
+
+    deleteUser(id: ID!): Boolean
+    @guard @field(resolver: "App\\GraphQL\\Mutations\\UserMutator@delete")
+}

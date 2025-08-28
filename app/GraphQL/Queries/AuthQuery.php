@@ -2,7 +2,7 @@
 
 namespace App\GraphQL\Queries;
 
-use App\Service\AuthService;
+use App\Services\AuthService;
 
 final readonly class AuthQuery
 {

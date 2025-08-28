@@ -1,0 +1,34 @@
+type AccountPayload {
+    conta: Int!
+    saldo: Float!
+}
+
+extend type Query {
+    saldo(conta: Int! @rules(apply: ["required", "integer", "min:1"])): Float!
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Mutations\\BankMutator@saldo")
+}
+
+extend type Mutation {
+    criarConta(
+        conta: Int! @rules(apply: ["required", "integer", "min:1"])
+        saldoInicial: Float = 0
+        user_id: ID
+    ): AccountPayload
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Mutations\\BankMutator@criarConta")
+
+    depositar(
+        conta: Int!  @rules(apply: ["required", "integer", "min:1"])
+        valor: Float! @rules(apply: ["required", "numeric", "min:0.01"])
+    ): AccountPayload
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Mutations\\BankMutator@depositar")
+
+    sacar(
+        conta: Int!  @rules(apply: ["required", "integer", "min:1"])
+        valor: Float! @rules(apply: ["required", "numeric", "min:0.01"])
+    ): AccountPayload
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Mutations\\BankMutator@sacar")
+}

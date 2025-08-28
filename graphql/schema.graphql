@@ -1,4 +1,5 @@
 #import auth.graphql
+#import bank.graphql
 scalar DateTime @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\DateTime")
 type Query {
     user(

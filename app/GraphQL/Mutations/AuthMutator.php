@@ -2,7 +2,7 @@
 
 namespace App\GraphQL\Mutations;
 
-use App\Service\AuthService;
+use App\Services\AuthService;
 
 class AuthMutator
 {
@@ -39,6 +39,8 @@ class AuthMutator
     {
         return $this->authService->refresh();
     }
+
+
 
 
 }

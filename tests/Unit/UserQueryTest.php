@@ -4,8 +4,8 @@ namespace Tests\Unit;
 
 use App\GraphQL\Queries\UserQuery;
 use App\Models\User;
-use App\Service\AuthService;
-use App\Service\UserService;
+use App\Services\AuthService;
+use App\Services\UserService;
 use Mockery;
 use PHPUnit\Framework\Attributes\Test;
 use Ramsey\Collection\Collection;

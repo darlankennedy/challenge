@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Service;
+namespace App\Services;
 
 use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -51,7 +52,7 @@ class AuthService
         return $this->tokenResponse($token, auth('api')->user());
     }
 
-    public function me(): \Illuminate\Contracts\Auth\Authenticatable
+    public function me(): ?Authenticatable
     {
         return auth('api')->user();
     }

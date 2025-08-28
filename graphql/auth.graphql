@@ -1,0 +1,39 @@
+input RegisterInput {
+    name: String!    @rules(apply: ["required", "string", "min:3"])
+    email: String!   @rules(apply: ["required", "email", "unique:users,email"])
+    password: String! @rules(apply: ["required", "min:4"])
+    confirm_password: String! @rules(apply: ["required", "same:password"])
+}
+
+input LoginInput {
+    email: String!    @rules(apply: ["required", "email"])
+    password: String! @rules(apply: ["required"])
+}
+type AuthPayload {
+    access_token: String!
+    token_type: String!
+    expires_in: Int!
+    user: User!
+}
+
+extend type Query {
+    me: User
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Queries\\AuthQuery@me")
+}
+
+type Mutation {
+    register(input: RegisterInput!): AuthPayload
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@register")
+
+    login(input: LoginInput!): AuthPayload
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@login")
+
+    logout: Boolean
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@logout")
+
+    refresh: AuthPayload
+    @guard(with: ["api"])
+    @field(resolver: "App\\GraphQL\\Mutations\\AuthMutator@refresh")
+}

@@ -51,7 +51,7 @@ class AuthService
         return $this->tokenResponse($token, auth('api')->user());
     }
 
-    public function me(): ?User
+    public function me(): \Illuminate\Contracts\Auth\Authenticatable
     {
         return auth('api')->user();
     }

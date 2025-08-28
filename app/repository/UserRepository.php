@@ -10,4 +10,5 @@ class UserRepository extends BaseRepository
     {
         parent::__construct($model);
     }
+
 }

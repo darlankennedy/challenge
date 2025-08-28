@@ -56,7 +56,7 @@ docker compose -f docker-composer.yml up -d --build
 ```
 
 ### ⏳ Migrações e seeds automáticos
-Na **primeira execução**, o backend pode rodar `migrate --seed` automaticamente (conforme scripts do projeto). Aguarde concluir. Você pode acompanhar os logs:
+Na **primeira execução**, o backend pode rodar `composer install` e `migrate --seed` automaticamente (conforme scripts do projeto). Aguarde concluir. Você pode acompanhar os logs:
 ```bash
 docker compose logs -f app
 ```
